@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 const Images = [
     {
-        "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvH28TyD8zuWiQfm1H_FZCaYlKb6o8j9YicQ&usqp=CAU",
+        "url": "https://photo-cdn2.icons8.com/lMlU7rY8f6ZSkUscxZF9gCO9R5uHWvBmHWwT9QHpMEM/rs:fit:576:385/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNjkwLzMwZWUz/ZGQ1LTYxZjYtNGM5/NS1hYjk3LTU3N2Q5/MjJhZWRkMS5qcGc.webp",
         "name": "Job Application",
         "subtitle": ""
     },
@@ -17,6 +17,11 @@ const Images = [
     {
         "url": "https://photo-cdn2.icons8.com/rkVQ_TNNDBpEM5X3kEiUhs6MQ_pQ-zTv8zu4k_kxJrE/rs:fit:576:423/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi81OThhNTNjZTUx/ODU0NTM5OGYxYzI2/OGUxM2Q4NzkxMy5q/cGc.webp",
         "name": "Ask Product requirements to your customers!",
+        "subtitle": ""
+    },
+    {
+        "url": "https://photo-cdn2.icons8.com/vl9E3ZbrcUk9u4oMJim8-0aa39d9dc1j3gfHyjcMIp0/rs:fit:576:384/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi83Y2U5MzUxNGUw/Y2Y0N2FmODRkZDA5/NTA0ZmMzMjBiNi5q/cGc.webp",
+        "name": "Plan a trip with friends!",
         "subtitle": ""
     }
 ];
@@ -40,23 +45,26 @@ export default function Dashboard({ user }) {
         <main style={{
             padding: 0
         }}>
-            <Box bg="#caf0f8"
+            <Box bg="#35374d" //</main> #caf0f8"
             width={"inherit"}
             mx={"2rem"}
                 //minH={"100vh"}
                  borderRadius={20}
                 px={"4rem"} py="2rem"
                 >
-                <Heading fontSize={25}>
+                <Heading fontSize={20} color="white">
                     Templates
                 </Heading>
                 <HStack paddingTop={5} mx={"2rem"} gap={8}>
                     {Images.map(data => {
-                        return <Card maxW={"180px"}>
+                        return <Card maxW={"180px"} height={"185px"}
+                        borderTopRadius={10}
+                        >
                             <CardBody style={{ padding: 0 }}>
                                 <Image
                                     bgRepeat={"repeat"}
                                     borderTopRadius={10}
+
                                     //                                   objectFit="contain"
                                     //                                   maxW={{ base: '100%', sm: '200px' }}
                                     maxH={"130px"}
