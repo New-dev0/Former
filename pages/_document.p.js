@@ -6,8 +6,8 @@ import Footer from '@/components/footer';
 export default function Document() {
   return (
     <Html lang="en">
-      <Head title='Zenforms'>
-        <meta property='og:title' content='Zenforms'/>
+      <Head title='Former'>
+        <meta property='og:title' content='Former'/>
         </Head>
       <body>
         <Main />

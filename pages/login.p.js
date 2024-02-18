@@ -15,7 +15,7 @@ export default function LoginPage({ login = true, user }) {
         if (user) {
             router.push("/dashboard");
         }        
-    }, [user]);
+    }, [user, router]);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -44,7 +44,7 @@ export default function LoginPage({ login = true, user }) {
         >
 
             <Flex flexDir={"row"} justifyContent={"center"}>
-                {!isMobile && <Image src="https://ouch-cdn2.icons8.com/RIrlQaGTTU9pAYI20kXNOEe08nhy8kk3THnCEjaDhQ4/rs:fit:368:386/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNTk1/LzZlMTViN2ZhLTMx/MDgtNDliNS04NzQ5/LTQzYTI5NTc5YmMw/OC5zdmc.png"
+                {!isMobile && <Image alt="login holder" src="https://ouch-cdn2.icons8.com/RIrlQaGTTU9pAYI20kXNOEe08nhy8kk3THnCEjaDhQ4/rs:fit:368:386/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNTk1/LzZlMTViN2ZhLTMx/MDgtNDliNS04NzQ5/LTQzYTI5NTc5YmMw/OC5zdmc.png"
                     height={350} width={350} marginRight={50} />
                 }
                 <Card style={{ minHeight: "60vh", minWidth: isMobile ? "90%" : "50%" }} variant={"elevated"} >

@@ -8,6 +8,6 @@ export default function Footer() {
             bg={"#1a1a29"}
             fontSize={16}
             color={"white"}>
-            Zenforms (c) {date.getFullYear()}
+                Former (c) {date.getFullYear()}
         </Flex></>
 }

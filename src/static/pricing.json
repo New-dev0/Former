@@ -1,0 +1,19 @@
+[
+    {
+        "id": "Former",
+        "notes": [
+            {
+                "_": "Unlimited responses"
+            }
+        ]
+    },
+    {
+        "id": "Typeform",
+        "key": "Basic",
+        "notes": [
+            {
+                "_": "100 Responses per month"
+            }
+        ]
+    }
+]

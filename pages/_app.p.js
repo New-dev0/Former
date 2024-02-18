@@ -13,7 +13,7 @@ function MyApp({ Component, pageProps }) {
     auth.onAuthStateChanged((user) => {
       setUser(user);
     })
-  }, [])
+  }, [auth])
 
   return (
     <ChakraProvider theme={theme}>
