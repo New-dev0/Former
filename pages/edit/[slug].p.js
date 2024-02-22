@@ -1,11 +1,13 @@
 import { Text, Box, Heading, Flex, Button, VStack, ButtonGroup, IconButton } from "@chakra-ui/react";
 import Header from "@/components/header";
 import { useRouter } from "next/router";
+import { Rating } from 'react-simple-star-rating'
 import { useEffect, useState } from "react";
+import { SingleDatepicker } from "chakra-dayzed-datepicker"
 import { GrAdd } from "react-icons/gr";
-
-import ColorCircle from "@/components/shapes";
+import FilePicker from "@/components/filePicker";
 import Head from "next/head";
+
 import { IoTabletLandscape } from "react-icons/io5";
 import { getAuth } from "firebase/auth";
 import { MdTableRows } from "react-icons/md";
@@ -13,6 +15,7 @@ import { FaChevronDown } from "react-icons/fa";
 import { Tabs, TabList, TabPanels, Tab, TabPanel, TabIndicator, HStack, Input } from '@chakra-ui/react'
 import {
     Card, CardHeader, CardFooter, Skeleton, CardBody, useMediaQuery, useToast,
+    Select, Textarea,
     useDisclosure
 } from "@chakra-ui/react";
 import { getDoc, getDocs, query, doc, addDoc, setDoc, collection } from "firebase/firestore";
@@ -59,6 +62,15 @@ async function getForm(slug) {
     const dcn = await getDoc(dc);
     //    console.log(doc)
     return dcn.data();
+}
+
+const optionTypes = {
+    "choice": "Choice Based",
+    "long_answer": "Long Answer",
+    "short_answer": "Short Answer",
+    "rating": "Rating",
+    "date": "Date",
+    "time": "Time"
 }
 
 export function Responses({ slug, ...props }) {
@@ -255,7 +267,7 @@ export default function ViewEditPage({ user, view }) {
                         onChange={(e) => {
                             props.question = e.currentTarget.value;
                         }} />}
-                <VStack gap={1}>
+                {["choice", "question"].includes(props.type) && <VStack gap={1}>
                     {props.options.map((option, oindex) => <Flex flexDir={"row"}
                         key={oindex} width={"100%"}>
 
@@ -279,18 +291,49 @@ export default function ViewEditPage({ user, view }) {
                             option.text = e.currentTarget.value;
                         }} />}
                     </Flex>)}
-                </VStack>
+                </VStack>}
+                {props.type === "short_answer" && <Input placeholder="Enter Content"
+                    borderWidth={0} />}
+                {props.type === "long_answer" && <Textarea placeholder="Enter Answer"
+                    borderWidth={0}
+                />}
+                {props.type === "rating" && <Box display={"flex"} justifyContent={"center"} mt={5}
+                >
+                    <Rating SVGstyle={{
+                        display: "inline-block",
+                    }} disableFillHover
+                    />
+                </Box>}
+                {props.type === "date" && <SingleDatepicker name="date-input" onDateChange={() => { }} />}
             </CardBody>
-            {!view && <CardFooter gap={2} justify={"space-between"}>
-                {options.length < 6 && <Button onClick={() => {
-                    options.push({
-                        "text": "Option " + (options.length + 1),
-                        "id": `opt${getRandomInt(1000000, 9999999)}`
-                    });
-                    setFormData({ ...formData });
-                }}>
-                    Add option
-                </Button>}
+            {!view && <CardFooter gap={2} justify={"space-between"}
+                //            alignContent={"center"}
+                alignItems={"center"}>
+                <Flex flexDir={"row"} gap={2}
+                    alignItems={"center"}>
+                    {options.length < 6 && <Button px={12} onClick={() => {
+                        options.push({
+                            "text": "Option " + (options.length + 1),
+                            "id": `opt${getRandomInt(1000000, 9999999)}`
+                        });
+                        setFormData({ ...formData });
+                    }}>
+                        Add option
+                    </Button>}
+                    <Select onChange={(e) => {
+                        props.type = e.currentTarget.value
+                        setFormData({ ...formData });
+                    }} placeholder={props.type ? optionTypes[props.type] : null} size={"sm"} maxW={"20vh"} borderRadius={10}>
+                        {Object.entries(optionTypes).map(
+                            data => {
+                                return <option value={data[0]} key={data[0]}
+                                >
+                                    {data[1]}
+                                </option>
+                            }
+                        )}
+                    </Select>
+                </Flex>
                 <IconButton colorScheme={"red"} icon={<MdDelete />} onClick={() => {
                     formData["pages"].splice(index, 1);
                     setFormData({ ...formData });
@@ -444,7 +487,7 @@ export default function ViewEditPage({ user, view }) {
                             formData["pages"] = [];
                         }
                         formData['pages'].push({
-                            "type": "question",
+                            "type": "choice",
                             "question": "Question",
                             "qid": `ques${getRandomInt(1000000, 9999999)}`,
                             "options": [
@@ -458,6 +501,7 @@ export default function ViewEditPage({ user, view }) {
             </ButtonGroup>
         </Box>
         <Responses onClose={onClose} onOpen={onOpen} isOpen={isOpen} slug={slug} />
+        <FilePicker />
     </> : <></>
 }
 

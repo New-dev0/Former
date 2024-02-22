@@ -17,7 +17,7 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <ChakraProvider theme={theme}>
-      <Component {...pageProps} user={user}/>
+      <Component {...pageProps} user={auth?.currentUser || user}/>
     </ChakraProvider>
   )
 }

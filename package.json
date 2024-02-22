@@ -9,21 +9,34 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/core": "^0.8.0",
     "@chakra-ui/modal": "^2.3.1",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
     "@chakra-ui/textarea": "^2.1.2",
     "@chakra-ui/theme": "^3.3.1",
+    "@emotion/core": "^11.0.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
+    "@giphy/js-fetch-api": "^5.3.0",
+    "@giphy/react-components": "^9.2.3",
+    "@langchain/openai": "^0.0.14",
+    "chakra-dayzed-datepicker": "^0.2.10",
     "crypto": "^1.0.1",
+    "date-fns": "^3.3.1",
+    "dayzed": "^3.2.3",
+    "emotion-theming": "^11.0.0",
     "eslint": "8.56.0",
     "eslint-config-next": "14.1.0",
     "firebase": "^10.8.0",
     "framer-motion": "^11.0.3",
+    "langchain": "^0.1.20",
     "next": "14.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "^5.0.1"
+    "react-icons": "^5.0.1",
+    "react-simple-star-rating": "^5.1.7",
+    "styled-components": "^6.1.8",
+    "uuid": "^9.0.1"
   }
 }

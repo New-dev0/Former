@@ -12,6 +12,7 @@ import {
     MenuDivider,
 } from '@chakra-ui/react'
 import { Teko, Courgette } from 'next/font/google';
+import { useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 const teko = Teko({
@@ -44,10 +45,16 @@ export function Former({ style, invert = false }) {
     </Text>
 
 }
-export default function Header({ children, user, showLogin = true, showOptions = true,
+export default function Header({ children, showLogin = true, showOptions = true,
     invert = false, shadow = false, centerChild = null,
     showAPI = true,
     pricing = true }) {
+    const auth = getAuth();
+    const [user, setUser] = useState(auth.currentUser);
+
+    useEffect(() => {
+        auth.onAuthStateChanged(user => setUser(user))
+    }, [auth]);
 
     return <Box py={invert ? 0 : 2.5}
         bg={invert ? "#2b2b2b" : "#1a1a29"}
@@ -96,28 +103,29 @@ export default function Header({ children, user, showLogin = true, showOptions =
                 </Flex>
                 }
                 {
-                    user == null ? <></> :
-                        (user ? <Menu>
-                            <MenuButton>
-                                <Avatar alignSelf={"flex-end"} marginLeft={"35px"} size={"md"} borderWidth={0}
-                                    name={user?.displayName} alt="" src={user?.photoURL} />
-                            </MenuButton>
-                            <MenuList mt={-15} mr={7}>
+                    (user ? <Menu>
+                        <MenuButton>
+                            <Avatar alignSelf={"flex-end"} marginLeft={"35px"} size={"md"} borderWidth={0}
+                                name={user?.displayName} alt="" src={user?.photoURL} />
+                        </MenuButton>
+                        <MenuList mt={-15} mr={7}>
+                            <Link href='/settings'>
                                 <MenuItem>Settings</MenuItem>
-                                <MenuItem colorScheme="red"
+                            </Link>
+                            <MenuItem colorScheme="red"
                                 onClick={async () => {
                                     const auth = getAuth();
                                     await auth.signOut();
                                 }}>Logout</MenuItem>
-                            </MenuList>
-                        </Menu> : <Flex alignSelf={"flex-end"} marginLeft={"35px"}>
-                            <Link href='/login'>
-                                <Button>
-                                    Login
-                                </Button>
+                        </MenuList>
+                    </Menu> : <Flex alignSelf={"center"} marginLeft={"15px"}>
+                        <Link href='/login'>
+                            <Button>
+                                Login
+                            </Button>
 
-                            </Link>
-                        </Flex>)}
+                        </Link>
+                    </Flex>)}
             </Flex>
 
         </Flex>
