@@ -11,11 +11,12 @@ import Head from "next/head";
 import { IoTabletLandscape } from "react-icons/io5";
 import { getAuth } from "firebase/auth";
 import { MdTableRows } from "react-icons/md";
-import { FaChevronDown } from "react-icons/fa";
-import { Tabs, TabList, TabPanels, Tab, TabPanel, TabIndicator, HStack, Input } from '@chakra-ui/react'
+import { FaChevronDown, FaHome } from "react-icons/fa";
+import { Tabs, TabList, TabPanels, Tab, TabPanel, TabIndicator, Badge, HStack, Input, Link, Spinner } from '@chakra-ui/react'
 import {
     Card, CardHeader, CardFooter, Skeleton, CardBody, useMediaQuery, useToast,
     Select, Textarea,
+    Checkbox,
     useDisclosure
 } from "@chakra-ui/react";
 import { getDoc, getDocs, query, doc, addDoc, setDoc, collection } from "firebase/firestore";
@@ -54,6 +55,7 @@ import {
     ModalBody,
     ModalCloseButton,
 } from '@chakra-ui/react'
+import { Coming_Soon, Ramabhadra } from "next/font/google";
 
 
 async function getForm(slug) {
@@ -100,10 +102,19 @@ export function Responses({ slug, ...props }) {
                     let page = (qdata.pages.filter((x) => x.qid === xy));
                     if (!page.length) return
                     page = page[0];
-                    //  console.log(qdata.pages, xy)
-                    let opt = page['options'].filter(y => y.id === x[1])
-                    if (!opt.length) return;
-                    out[xy]['ans'].push(opt[0]['text'])
+                    let value;
+                    if (["question", "choice"].includes(page['type'])) {
+                        let opt = page['options'].filter(y => y.id === x[1])
+                        if (!opt.length) return;
+                        value = opt[0]['text'];
+                        console.log(value)
+                    }
+                    else {
+                        console.log(page.type)
+                        value = x[1];
+                    }
+                    //                    console.log(value)
+                    out[xy]['ans'].push(value)
                 })
             })
             //            console.log(out)
@@ -112,12 +123,13 @@ export function Responses({ slug, ...props }) {
         setData()
     }, [props.isOpen]);
 
-    //    console.log(response)
+    console.log(response)
     //  console.log(props)
     return <Modal size={"full"} {...props}>
         <ModalOverlay />
         <ModalContent backgroundColor={"whitesmoke"}
-            display={"flex"} alignItems={"center"}>
+            display={"flex"} alignItems={"center"}
+            pb={"8rem"}>
             <ModalCloseButton />
             <ModalHeader fontWeight={"bold"} display={"flex"} justifyContent={"space-between"}
                 width={"90%"}>
@@ -156,31 +168,38 @@ export function Responses({ slug, ...props }) {
                     })}
                 </TabList>
                 <TabPanels>
-                    {Object.entries(response).map(data => {
+                    {Object.entries(response).map((data, index) => {
                         let rData = data[1];
-                        //                        console.log(rData);
-                        return rData.ans.map((x, index) => {
-                            //                            console.log(x)
-                            return <TabPanel key={index} >
-                                <HStack >
+                        //                        console.log(rData)
+                        return <TabPanel key={index}>
+                            {rData.ans.map((x, index) => {
+                                return <HStack key={index}>
                                     <Text>
                                         {index + 1}.
                                     </Text>
                                     <Box width={"100%"} py={2} px={3} boxShadow={"rgba(0, 0, 0, 0.05) 0px 0px 0px 1px;"}
-                                        textAlign={"start"}> {x}</Box></HStack>
+                                        textAlign={"start"}>
+                                        {rData.type === "rating" && <Rating readonly allowHover={false} disableFillHover initialValue={parseInt(x)}
+                                            SVGstyle={{
+                                                display: "inline-block",
+                                            }} />}
+                                        {["choice", "question", "short_answer", "long_answer"].includes(rData.type) && <Text>{x}</Text>}
+                                    </Box></HStack>
 
-                            </TabPanel>
+                            })}
+                            {!rData.ans.length && <Text>No Responses</Text>}
+                        </TabPanel>
+                        //                        console.log(rData);
 
-                        })
                     })}
                 </TabPanels>
             </Tabs>}
-            {viewMode === "combined" && response && (Object.entries((response))).map((data) => {
+            {viewMode === "combined" && response && (Object.entries((response))).map((data, index) => {
                 let qId = data[0];
                 let rData = data[1];
                 //                console.log(rData)
                 return <>
-                    <Card width={"80%"} my={2}>
+                    <Card width={"80%"} my={2} key={index}>
                         <CardHeader fontWeight={"bold"} fontSize={20}>
                             {rData.question}
                         </CardHeader>
@@ -190,8 +209,15 @@ export function Responses({ slug, ...props }) {
                                     <Text>
                                         {index + 1}.
                                     </Text>
-                                    <Box width={"100%"} py={2} px={3} boxShadow={"rgba(0, 0, 0, 0.05) 0px 0px 0px 1px;"}> {x}</Box></HStack>
+                                    <Box width={"100%"} py={2} px={3} boxShadow={"rgba(0, 0, 0, 0.05) 0px 0px 0px 1px;"}>
+                                        {rData.type === "rating" && <Rating readonly allowHover={false} disableFillHover initialValue={parseInt(x)}
+                                            SVGstyle={{
+                                                display: "inline-block",
+                                            }} />}
+                                            <Text>{x}</Text>
+                                    </Box></HStack>
                             })}
+                            {!rData.ans.length && <Text>No responses</Text>}
                         </CardBody>
                     </Card>
 
@@ -201,11 +227,37 @@ export function Responses({ slug, ...props }) {
     </Modal>
 }
 
+const colorModes = [
+    {
+        "name": "Teal",
+        "bg": "teal",
+        "fg": "white",
+        "sc": "#034078"
+    },
+    {
+        "name": "Ocean Blue",
+        "bg": "#A2D6F9",
+        "fg": "white",
+        "sc": "#003366",
+        "colorScheme": "blue",
+        "card": "#473198"
+    },
+    {
+        "name": "Forest Green",
+        "bg": "#228B22",
+        "fg": "white",
+        "sc": "#2E8B57"
+    }
+
+];
+
 export default function ViewEditPage({ user, view }) {
     const [formData, setFormData] = useState();
     const [submitted, setSubmitted] = useState();
     const [response, setResponse] = useState({});
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const [modalOpen, setModalOpen] = useState(false);
+    const [tab, setTab] = useState(0);
     const [isMobile] = useMediaQuery("(max-width: 520px)");
     const toast = useToast();
 
@@ -226,31 +278,78 @@ export default function ViewEditPage({ user, view }) {
             align={"center"}
             flexDir={"column"}
         >
+            <Box minW={"80vh"} backgroundColor={"whitesmoke"} borderRadius={20}
+             paddingTop={5}
+             paddingBottom={5}
+             pr={8}
+             pl={8}>
+            <Heading size="md" textAlign={"start"}>
+                Settings
+            </Heading>
+            <HStack mt={3} justify={"space-between"} minW={"80vh"}>
+                <Text>
+                    Require login to fill
+                </Text>
+                <Checkbox defaultChecked />
+            </HStack>
 
+            </Box>
+            <Box minW={"80vh"} backgroundColor={"whitesmoke"} borderRadius={20}
+            paddingTop={5}
+            mt={8}
+            paddingBottom={5}
+            pr={8}
+            pl={8}>
             <Heading size={"md"} textAlign={"center"}>
                 Color Scheme
+                <Badge>
+                    Upcoming
+                </Badge>
             </Heading>
-            <HStack mt={5}>
-                <Box //backgroundColor={"black"}
-                    boxShadow={"rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;"}
-                    py={2} px={3} backgroundColor={"red"}
-                    borderRadius={7}>
-                    <Heading size={"sm"}>
-                        Blue
-                    </Heading>
-                    <Skeleton height='20px' width={"180px"} mt={3} />
-                    <Skeleton height='20px' width={"180px"} marginTop={3} />
-                </Box>
+            <HStack gap={5} mt={5}>
+                {
+                    colorModes.map((d, index) => {
+                        return <Box //backgroundColor={"black"}
+                        key={index}
+                            _hover={{
+                                boxShadow: "rgba(0, 0, 0, 0.07) 0px 1px 2px, rgba(0, 0, 0, 0.07) 0px 2px 4px, rgba(0, 0, 0, 0.07) 0px 4px 8px, rgba(0, 0, 0, 0.07) 0px 8px 16px, rgba(0, 0, 0, 0.07) 0px 16px 32px, rgba(0, 0, 0, 0.07) 0px 32px 64px;;"
+                            }}
+                            onClick={() => {
+                                // TODO: UNCOMMNENT
+                                //                              formData['theme'] = d;
+                                //                                setFormData({ ...formData });
+                            }}
+                            //   boxShadow={"rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;"}
+                            py={2} px={3} backgroundColor={d.bg}
+                            borderRadius={7}>
+                            <Heading size={"sm"} color={d.fg}>
+                                {d.name}
+                            </Heading>
+                            <Skeleton height='20px' width={"180px"} mt={3} />
+                            <Skeleton height='20px' width={"180px"} marginTop={3} />
+                        </Box>
+
+                    })
+                }
             </HStack>
+
+            </Box>
+            <Button colorScheme={"red"} mt={5} size={"lg"} onClick={() => {
+                alert("Deletion is currently not supported!")
+            }}>
+                Delete form
+            </Button>
         </Flex>
     }
 
     function ParseQuestion(props, index) {
         const [sOption, selectOpt] = useState();
         const options = formData["pages"][index]["options"];
+        console.log(options, props)
 
-        return <Card minH={"200px"} width={isMobile ? "90%" : "38%"}
+        return <Card minH={"160px"} width={isMobile ? "90%" : "38%"}
             boxShadow={"rgba(0, 0, 0, 0.24) 0px 3px 8px;"}
+            backgroundColor={formData?.theme?.card}
 
         // backgroundColor={"blue.200"}
         >
@@ -263,12 +362,13 @@ export default function ViewEditPage({ user, view }) {
                     <Input borderWidth={0.1} fontWeight={"500"}
                         size={"lg"}
                         defaultValue={props.question}
+                        color={formData?.theme?.fg}
                         marginBottom={2}
                         onChange={(e) => {
                             props.question = e.currentTarget.value;
                         }} />}
                 {["choice", "question"].includes(props.type) && <VStack gap={1}>
-                    {props.options.map((option, oindex) => <Flex flexDir={"row"}
+                    {props?.options.map((option, oindex) => <Flex flexDir={"row"}
                         key={oindex} width={"100%"}>
 
                         <Radio colorScheme={"purple"} disabled={!view}
@@ -280,47 +380,63 @@ export default function ViewEditPage({ user, view }) {
                                     selectOpt(oindex);
                                     //                                    console.log(props.question);
                                     response[props.qid] = option.id
-                                    //   setResponse({ ...response });
+                                    //                                   setResponse({ ...response });
                                 }
                             }} />
                         {view ? <Text ml={5} size={"sm"} maxW={"250px"} fontWeight={"400"}
                             fontSize={15}>
                             {option.text}
-                        </Text> : <Input maxW={"250px"} borderWidth={0} defaultValue={option.text} ml={2} size={"sm"} onChange={(e) => {
-                            //formData["pages"][index]["options"][oindex]['text']
-                            option.text = e.currentTarget.value;
-                        }} />}
+                        </Text> :
+                            <Input textColor={formData?.theme?.fg} maxW={"250px"} borderWidth={0}
+                                defaultValue={option.text} ml={2} size={"sm"}
+                                onChange={(e) => {
+                                    if (view) {
+                                        response[props.qid] = e.currentTarget.value;
+                                        return;
+                                    }
+                                    formData["pages"][index]["options"][oindex]['text'] = e.currentTarget.value;
+                                }} />}
                     </Flex>)}
                 </VStack>}
                 {props.type === "short_answer" && <Input placeholder="Enter Content"
-                    borderWidth={0} />}
-                {props.type === "long_answer" && <Textarea placeholder="Enter Answer"
                     borderWidth={0}
+                    onChange={e => {
+                        if (view) {
+                            response[props.qid] = e.currentTarget.value;
+                            return
+                        }
+
+                    }} />}
+                {props.type === "long_answer" && <Textarea placeholder="Enter Answer"
+                    color={formData?.theme?.fg}
+                    borderWidth={0}
+                    onChange={e => {
+                        if (view) {
+                            response[props.qid] = e.currentTarget.value;
+                        }
+                    }}
                 />}
                 {props.type === "rating" && <Box display={"flex"} justifyContent={"center"} mt={5}
                 >
                     <Rating SVGstyle={{
                         display: "inline-block",
-                    }} disableFillHover
-                    />
+                        marginTop: view ? 8 : 0
+                    }} disableFillHover allowHover={false}
+                        onClick={(e) => {
+                            response[props.qid] = e;
+                        }} />
                 </Box>}
-                {props.type === "date" && <SingleDatepicker name="date-input" onDateChange={() => { }} />}
+                {["date", "time"].includes(props.type) && <Input type={props.type} onChange={e => {
+                    response[props.qid] = e.currentTarget.value;
+                }} />}
             </CardBody>
             {!view && <CardFooter gap={2} justify={"space-between"}
                 //            alignContent={"center"}
                 alignItems={"center"}>
                 <Flex flexDir={"row"} gap={2}
                     alignItems={"center"}>
-                    {options.length < 6 && <Button px={12} onClick={() => {
-                        options.push({
-                            "text": "Option " + (options.length + 1),
-                            "id": `opt${getRandomInt(1000000, 9999999)}`
-                        });
-                        setFormData({ ...formData });
-                    }}>
-                        Add option
-                    </Button>}
-                    <Select onChange={(e) => {
+
+                    <Select textColor={formData?.theme?.fg} onChange={(e) => {
                         props.type = e.currentTarget.value
                         setFormData({ ...formData });
                     }} placeholder={props.type ? optionTypes[props.type] : null} size={"sm"} maxW={"20vh"} borderRadius={10}>
@@ -333,6 +449,15 @@ export default function ViewEditPage({ user, view }) {
                             }
                         )}
                     </Select>
+                    {["choice", "question"].includes(props.type) && options.length < 6 && <Button px={12} onClick={() => {
+                        options.push({
+                            "text": "Option " + (options.length + 1),
+                            "id": `opt${getRandomInt(1000000, 9999999)}`
+                        });
+                        setFormData({ ...formData });
+                    }}>
+                        Add option
+                    </Button>}
                 </Flex>
                 <IconButton colorScheme={"red"} icon={<MdDelete />} onClick={() => {
                     formData["pages"].splice(index, 1);
@@ -342,7 +467,8 @@ export default function ViewEditPage({ user, view }) {
         </Card>
     }
 
-    const QuestionsTab = () => <><Flex gap={3} alignItems={"center"} flexDir={"column"} px={8}>
+    const QuestionsTab = () => <><Flex gap={3} alignItems={"center"} flexDir={"column"} px={8}
+        backgroundColor={formData?.theme?.bg}>
         {!view && !formData?.pages?.length && <Card width={isMobile ? "90%" : "38%"} opacity={0.7}>
             <CardHeader>
                 <Heading fontWeight={"bold"} size="md">
@@ -364,6 +490,7 @@ export default function ViewEditPage({ user, view }) {
         {view && <Button colorScheme={"purple"} minW={"220px"} mt={7} onClick={async () => {
             //            console.log(response);
             const dc = collection(db, "forms", slug, "responses");
+            //            console.log(response);
             await addDoc(dc, response);
             toast({
                 status: "success",
@@ -375,9 +502,12 @@ export default function ViewEditPage({ user, view }) {
             Submit
         </Button>}
     </Flex>
-    </>;
+    </>
     if (view) {
         return formData ? <>
+            <Head>
+                <title>{formData.title}</title>
+            </Head>
             <Header invert showOptions={false} user={user} />
             <Box background={"#f5f5f5"}
                 py={3}
@@ -416,26 +546,37 @@ export default function ViewEditPage({ user, view }) {
         </> : <></>
     }
     return formData ? <>
-        <Header invert showOptions={false} user={user} />
+        <Head>
+            <title>{formData?.title}</title>
+        </Head>
+        {/* <Header invert showOptions={false} user={user} /> */}
         <Box minH={"100vh"}
             paddingBottom={"4rem"}
-            backgroundColor={"#DEDEDE"}
+            backgroundColor={formData?.theme?.bg || "#DEDEDE"
+            }
         //            backgroundColor={"#f5f5f5"}
         >
             <Tabs
                 variant='soft-rounded'
-                colorScheme={"purple"}
-
+                colorScheme={formData?.theme?.colorScheme || "purple"}
+            //              backgroundImage={"https://t4.ftcdn.net/jpg/01/95/42/21/240_F_195422106_cNzNOmCmgf0QbxDVfuOoEc2zEl0gYIL0.jpg"}
+            //                backgroundRepeat={"repeat"}
             //                align="center"
             >
                 <TabList display={"flex"} justifyContent={"space-between"} px={8}
                     boxShadow={"rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;"}
                     py={4}
-                    background={"#f5f5f5"}
+                    background={formData?.theme?.sc || "white"}
                 >
-                    <Heading size={"lg"} color={"#2b2b2b"}>
-                        {formData['title']}
-                    </Heading>
+                    <Flex display={"flex"} alignContent={"center"}>
+                        <IconButton icon={<FaHome />} colorScheme={"purple"}
+                            onClick={(e) => router.push("/dashboard")} borderRadius={"50%"} />
+                        <Heading size={"lg"} color={formData?.theme?.fg || "#2b2b2b"} ml={3}>
+                            {formData['title']}
+
+                        </Heading>
+                    </Flex>
+
                     <Flex flexDir={"row"} marginLeft={"30px"}>
                         <Tab>
                             Questions
@@ -445,7 +586,7 @@ export default function ViewEditPage({ user, view }) {
                         </Tab>
                     </Flex>
                     <ButtonGroup justifySelf={"flex-end"} alignSelf={"flex-end"}
-                        colorScheme={"purple"}>
+                        colorScheme={formData?.theme?.colorScheme || "purple"}>
                         <Button //mt={1} 
                             variant={"outline"}
                             onClick={onOpen}
@@ -453,7 +594,12 @@ export default function ViewEditPage({ user, view }) {
                             borderRadius={20}>
                             View responses
                         </Button>
-                        <Button
+                        <Button onClick={async (e) => {
+                            await navigator.share({
+                                title: `${user?.displayName} sent you this form!`,
+                                url: `https://${window.location.host}/view/${slug}`
+                            })
+                        }}
                             borderRadius={20}>
                             Share
                         </Button>
@@ -471,10 +617,14 @@ export default function ViewEditPage({ user, view }) {
         </Box>
         <Box display={"flex"} position={"fixed"} bottom={10} right={10}
         >
-            <ButtonGroup width={200} colorScheme={"purple"} flexDir={"column"} >
+            <ButtonGroup width={200} colorScheme={formData?.theme?.colorScheme || "purple"} flexDir={"column"} >
                 <Button marginLeft={2} width={"180px"} onClick={async () => {
                     const dc = doc(db, "forms", slug);
                     await setDoc(dc, formData);
+                    toast({
+                        title: "Saved!",
+                        status: "success"
+                    })
                 }}>
                     Save
                 </Button>
@@ -501,8 +651,18 @@ export default function ViewEditPage({ user, view }) {
             </ButtonGroup>
         </Box>
         <Responses onClose={onClose} onOpen={onOpen} isOpen={isOpen} slug={slug} />
-        <FilePicker />
-    </> : <></>
+        <FilePicker isOpen={modalOpen} onClose={() => setModalOpen(!modalOpen)} onSelect={(e) => {
+            setModalOpen(!modalOpen);
+            console.log(e);
+        }} />
+    </> : <>
+        <Header invert />
+        <Box>
+            <Flex justify={"center"} align={"center"} minH={"100vh"}>
+                <Spinner size="xl" />
+            </Flex>
+        </Box>
+    </>
 }
 
 /*    () => {

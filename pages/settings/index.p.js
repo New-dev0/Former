@@ -22,8 +22,8 @@ export default function SettingsPage({ title, children }) {
                     <Flex display={"flex"} flexDir={"column"} gap={2}
                         maxW={"30vh"} width={"30vh"}
                         >
-                        {Pages.map(box_title => {
-                            return <Button onClick={() => router.replace(`/settings/${box_title.toLowerCase().replace(" ", "-")}`)} colorScheme={title === box_title ? "purple" : null}
+                        {Pages.map((box_title, index) => {
+                            return <Button key={index} onClick={() => router.replace(`/settings/${box_title.toLowerCase().replace(" ", "-")}`)} colorScheme={title === box_title ? "purple" : null}
                                 width={"30vh"} variant={title === box_title ? null : "outline"}>
                                 {box_title}
                             </Button>

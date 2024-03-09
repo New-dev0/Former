@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {unoptimized: true,},
-  pageExtensions: ["p.js"]
+  pageExtensions: ["p.js"],
 }
 
 module.exports = nextConfig

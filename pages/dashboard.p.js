@@ -2,14 +2,18 @@ import Header from "@/components/header";
 import {
     VStack, Flex, Box, Text,
     Modal, Image, Card, Button, Heading, CardHeader, CardBody, CardFooter,
+    Link,
     useToast, Input
+    , Grid,
+    GridItem
     , SimpleGrid,
     IconButton,
+    Spinner,
 
     useMediaQuery
 } from "@chakra-ui/react";
 import { BsThreeDotsVertical } from "react-icons/bs";
-
+import VoiceModels from "../src/static/voiceModel.json"
 import { IoMdClose } from "react-icons/io";
 
 import { useDisclosure } from "@chakra-ui/react";
@@ -54,6 +58,11 @@ const Images = [
             }
         ]
     },
+    // {
+    //     "url": "https://img.freepik.com/free-vector/happy-women-sitting-talking-each-other-dialog-psychologist-tablet-flat-illustration_74855-14078.jpg?size=626&ext=jpg&ga=GA1.1.1700460183.1709769600&semt=sph",
+    //     "name": "College Adm.",
+    //     "subtitle": ""
+    // },
     {
         "url": "https://photo-cdn2.icons8.com/xYg2PreVyUGTLWbDOAJkdeAIDxBKnXH_NGp49tQa7ak/rs:fit:576:384/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi9hMzZlNTg3ZmM1/YWU0NjY3ODE1NDU2/MmMxN2Q0OGI0My5q/cGc.webp",
         "name": "Plan a trip with friends!",
@@ -74,7 +83,13 @@ const Images = [
         "name": "Job Application",
         "subtitle": ""
     },
+    {
+        "url": "https://5.imimg.com/data5/NN/RC/MY-62005257/tiffin-service.jpg",
+        "name": "Online Tiffin Service",
+        "subtitle": ""
+    }
 ];
+
 
 const crypto = require('crypto');
 
@@ -91,22 +106,22 @@ export function getRandomInt(min, max) {
 }
 
 
-async function IDExists(id) {
-    const dc = doc(db, "forms", id)
+async function IDExists(id, key = "forms") {
+    const dc = doc(db, key, id)
     const dcsnap = await getDoc(dc);
     console.debug("checking id", id)
     return dcsnap
 }
 
 
-async function getUniqueHash() {
+export async function getUniqueHash(key) {
     let hash;
     do {
         hash = generateRandomHash(
             getRandomInt(4, 8)
         )
     }
-    while ((await IDExists(hash)).exists()) {
+    while ((await IDExists(hash, key)).exists()) {
         hash = generateRandomHash(
             getRandomInt(4, 8)
         )
@@ -149,6 +164,7 @@ export default function Dashboard({ user }) {
     //     console.log(user);
 
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const [loading, setLoading] = useState(true);
     const [isMobile] = useMediaQuery("(max-width: 600px)");
     const [modalTitle, setModalTitle] = useState();
     const [modalDescription, setModalDescription] = useState();
@@ -163,7 +179,10 @@ export default function Dashboard({ user }) {
             router.push("/login");
         }
         else if (user) {
-            getUserForms(user.uid).then(setUserForms)
+            getUserForms(user.uid).then((x) => {
+                setUserForms(x);
+                setLoading(false)
+            })
         }
     }, [user]);
 
@@ -234,7 +253,46 @@ export default function Dashboard({ user }) {
                         </Card>
                     })}
                 </Box>
-            </Box>      <Flex minH={"30vh"}
+            </Box>
+            {/*
+            <Box mt={3} px={"2rem"}>
+                <Heading size="md">
+                    Voice Forms
+                </Heading>
+                <Box mx={5} mt={5}>
+                    <Grid templateColumns='repeat(3, 1fr)' gap={5}>
+                        {Object.entries(VoiceModels).map(
+                            data => {
+                                let id = data[0];
+                                let ndata = data[1];
+                                return <GridItem  // backgroundColor={"#d1dece"}
+
+                                >
+                                    <Card         >
+                                        <CardBody _hover={{
+                                            backgroundColor: "gray.100", borderRadius: 15
+                                        }}>
+                                            <Link href={`/voices/create?ref=${id}`} flexDir={"row"} display={"flex"}>
+                                                <Image src={ndata.img}
+                                                    height={50} width={50} borderRadius={5}
+                                                    backgroundColor={"transparent"}
+                                                />
+                                                <Text ml={3}>
+                                                    {ndata.title}
+                                                </Text>
+                                            </Link>
+
+
+                                        </CardBody>
+                                    </Card>
+
+                                </GridItem>
+                            }
+                        )}
+                    </Grid>
+                </Box>
+                        </Box>*/}
+            <Flex minH={"30vh"}
                 py={"1rem"}
                 px={"1rem"}
                 flexDir={"column"}
@@ -252,9 +310,16 @@ export default function Dashboard({ user }) {
                         <hr />
                     </CardHeader>
                     <CardBody display={"flex"} justifyContent={
-                     haveForms ? null : "center"} alignItems={
-                        haveForms ? null : "center"}
+                        haveForms ? null : "center"} alignItems={
+                            haveForms ? null : "center"}
                     >
+                        {loading && <Flex flexDir={"row"}
+                            justify={"flex-end"} width={"100%"}>
+                            <Spinner thickness="4px" size="xl"
+
+                                emptyColor='gray.200'
+                                color='blue.500' />
+                        </Flex>}
                         {haveForms ? <VStack marginLeft={3} width={"100%"}>
                             {userForms?.map((data, index) => {
                                 console.log(data)
@@ -278,6 +343,10 @@ export default function Dashboard({ user }) {
                                             <Text>
                                                 {data['title']}
                                             </Text>
+                                            {
+                                                data.description && <Text
+                                                    opacity={0.8}>{data.description}</Text>
+                                            }
                                         </Flex>
                                     </Flex>
                                     <IconButton variant={"outline"} icon={<BsThreeDotsVertical />} borderRadius={20}>
@@ -334,8 +403,8 @@ export default function Dashboard({ user }) {
                         boxShadow={"rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgb(209, 213, 219) 0px 0px 0px 1px inset;"}
                         px={2} align={"center"}
                         justify={"space-between"}
-//                        borderWidth={0.2}
-  //                      borderColor={"black"}
+                        //                        borderWidth={0.2}
+                        //                      borderColor={"black"}
                         alignItems={"center"}
                         verticalAlign={"center"}
                     >
@@ -353,7 +422,7 @@ export default function Dashboard({ user }) {
                             </Flex>
                         </Flex>
 
-                        <IconButton colorScheme={"red"} variant={"outline"} icon={<IoMdClose size={20} color="red"/>} size={"sm"}
+                        <IconButton colorScheme={"red"} variant={"outline"} icon={<IoMdClose size={20} color="red" />} size={"sm"}
                             borderRadius={50} onClick={() => {
                                 selectTemplate(null);
                             }} />

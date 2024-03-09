@@ -8,8 +8,8 @@ export default function Profile({ user }) {
         <Flex
             flexDir={"column"} alignItems={"center"}
         >
-            <Image src={user?.photoURL} height={"200px"} width={"200px"} borderRadius={"50%"} />
-            <Text>
+            <Image mt={3} src={user?.photoURL} height={"200px"} width={"200px"} borderRadius={"50%"} />
+            <Text mt={6}>
                 {user?.displayName}
             </Text>
         </Flex>
