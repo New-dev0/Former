@@ -6,7 +6,8 @@ import Header from '@/components/header';
 
 import {
   Flex, Button, HStack, Link, Box, Heading, Text, Card, CardBody,
-  Badge, VStack
+  Badge, VStack,
+  CardHeader
 } from "@chakra-ui/react";
 import { Abel, Roboto } from 'next/font/google';
 
@@ -40,33 +41,33 @@ export default function Home({ user }) {
               <ul style={{ marginTop: 7 }}>
                 <li >
                   <HStack>
-                  <Image src="https://img.icons8.com/?size=48&id=18944&format=png"
-                    height={20} width={30}/>
+                    <Image src="https://img.icons8.com/?size=48&id=18944&format=png"
+                      height={20} width={30} />
 
-                  <Text color={"white"} fontSize={30} className={AbelFont.className}
-                  flexDir={"row"} display={"flex"}>
-                    Making Building forms easier!
-                  </Text>
-
-                  </HStack>
-                  <HStack>
-                  <Image src="https://img.icons8.com/?size=48&id=18944&format=png"
-                    height={20} width={30}/>
-
-                  <Text color={"white"} fontSize={30} className={AbelFont.className}
-                  flexDir={"row"} display={"flex"}>
-                    Seamless Integration
-                  </Text>
+                    <Text color={"white"} fontSize={30} className={AbelFont.className}
+                      flexDir={"row"} display={"flex"}>
+                      Making Building forms easier!
+                    </Text>
 
                   </HStack>
                   <HStack>
-                  <Image src="https://img.icons8.com/?size=48&id=18944&format=png"
-                    height={20} width={30}/>
+                    <Image src="https://img.icons8.com/?size=48&id=18944&format=png"
+                      height={20} width={30} />
 
-                  <Text color={"white"} fontSize={30} className={AbelFont.className}
-                  flexDir={"row"} display={"flex"}>
-                    Made for Businesses to expand their reach
-                  </Text>
+                    <Text color={"white"} fontSize={30} className={AbelFont.className}
+                      flexDir={"row"} display={"flex"}>
+                      Seamless Integration
+                    </Text>
+
+                  </HStack>
+                  <HStack>
+                    <Image src="https://img.icons8.com/?size=48&id=18944&format=png"
+                      height={20} width={30} />
+
+                    <Text color={"white"} fontSize={30} className={AbelFont.className}
+                      flexDir={"row"} display={"flex"}>
+                      Made for Businesses to expand their reach
+                    </Text>
 
                   </HStack>
 
@@ -106,8 +107,52 @@ export default function Home({ user }) {
           </Flex>
 
         </Flex>
-
       </main>
+      <Box minH={"100vh"}
+        //              bgGradient={"linear(to-r, red, pink)"}
+        px={3} py={3}
+        backgroundColor={"#e3e8e7"}
+        display={"flex"}
+        pt={8}
+        flexDir={"column"}
+        alignItems={"center"}
+      >
+        <Heading textAlign={"center"}
+        >Why Former?</Heading>
+        <div style={{
+          marginTop: 5,
+          borderBottomColor: "black",
+          borderStyle: "dashed",
+          borderBottomWidth: 1,
+          height: 0.5,
+          width: "10%",
+        }} />
+        <Flex
+          mt={8}
+          flexDir={"column"}
+          gap={8}
+          width={"-moz-max-content"}
+          minW={"80%"}
+          alignItems={"center"}>
+
+          <Card width={"50%"}
+            backgroundColor={"white"}
+            borderWidth={1}
+            boxShadow="rgba(17, 17, 26, 0.1) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px"
+            borderColor={"black"}>
+            <CardHeader>
+              <HStack>
+                <Image width={60} height={60} src={"https://ouch-cdn2.icons8.com/mNp6JKF-PmGhmDkAN3Qqnk23F9G2I91Zh7DzHROJHfU/rs:fit:368:332/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNTc5/LzljZmY1YWJlLTlh/ZGQtNGM0YS1hOTNm/LTJmZmVkMzA1ZmQ4/Zi5zdmc.png"} />
+                <Heading marginLeft={4} size={"md"}>
+                  Built for all
+                </Heading>
+
+              </HStack>
+            </CardHeader>
+          </Card>
+        </Flex>
+      </Box>
+
     </>
   )
 }
