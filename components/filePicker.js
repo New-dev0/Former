@@ -2,29 +2,83 @@ import { Modal, ModalContent, ModalCloseButton, Button, Heading, Flex, Box, Tabs
 // import { Grid } from '@giphy/react-components'
 import { GiphyFetch } from '@giphy/js-fetch-api'
 import { useEffect, useState } from "react";
-import { FaGalacticRepublic } from "react-icons/fa";
-
+// import { FaGalacticRepublic } from "react-icons/fa";
+// import firestor
+import { storage } from "@/src/firebaseapp";
+import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 // use @giphy/js-fetch-api to fetch gifs, instantiate with your api key
 const gf = new GiphyFetch('Bcs4Iqudaov0oNwSF8uAagnPUx6CUOgK')
 
-function UserUploads() {
-    const [data, setData] = useState();
-    const [url, setUrl] = useState();
+function UserUploads({ onSelect }) {
+    const user = getAuth();
+    const [data, setData] = useState([]);
+
+
+    async function getImages() {
+        const refe = ref(storage, `user-uploads/${user.currentUser.uid}/`);
+
+        let allFiles = await listAll(refe);
+        let imageBox = [];
+        await Promise.all(allFiles.items.map(
+            async file => {
+                const res = await getDownloadURL(file);
+                imageBox.push(res);
+            }
+        ));
+        setData(imageBox);
+    }
+
 
     useEffect(() => {
+        getImages();
     }, []);
 
     return <Box>
         <Heading size={"md"} mb={2}>
             Upload an Image
         </Heading>
-        <label for="ulimage"><Text
-            color="blue.500">
-            Upload image from local
-        </Text>
-        </label>
-        <input type="file" hidden id="ulimage" name="ulimage" accept="image/png, image/jpeg" />
+        <label for="ulimage"
 
+        ><Text
+            color="blue.500">
+                Upload image from local
+            </Text>
+        </label>
+        <input type="file" hidden id="ulimage" name="ulimage" accept="image/png, image/jpeg"
+            onChange={async e => {
+                const files = e.currentTarget.files;
+                if (!files) return;
+                let file = files[0];
+                console.log(await file.arrayBuffer())
+                const fileRef = ref(storage, `user-uploads/${user.currentUser.uid}/` + file.name);
+                const res = await uploadBytes(fileRef, file);
+                data.push(await getDownloadURL(fileRef));
+                setData(data);
+            }}
+        />
+        <Box pt={5}>
+            {data.length ? <>
+                <Text mb={3} fontWeight={"bold"}>Recently Uploaded</Text>
+                <Grid templateColumns={"repeat(4, 1fr)"}>
+                    {data.map((url, index) => {
+                        return <GridItem key={index} onClick={(e) => {
+                            onSelect({
+                                "height": 0,
+                                "width": 0,
+                                "url": url
+                            })
+                        }}>
+                            <Image src={url} />
+                        </GridItem>
+                    })}
+                </Grid>
+            </> : <Text>
+                You have not uploaded any files!
+            </Text>}
+
+
+        </Box>
     </Box>
 }
 
@@ -94,7 +148,7 @@ function GIFPage({ onSelect }) {
     </>
 }
 
-function ImagePicker({onSelect}) {
+function ImagePicker({ onSelect }) {
     const [input, setInput] = useState('fruits');
     const [data, setData] = useState();
 
@@ -109,18 +163,19 @@ function ImagePicker({onSelect}) {
     }, [input])
 
     return <Box
-    overflowY={"scroll"} maxH={"60vh"}>
-        <Input mx={3} value={input} onChange={e => setInput(e.currentTarget.value)} 
+        overflowY={"scroll"}
+        overflowX={"scroll"} maxH={"60vh"}>
+        <Input mx={3} value={input} onChange={e => setInput(e.currentTarget.value)}
         />
 
-        <Grid templateColumns={"repeat(3, 1fr)"} mt={3}>
+        <Grid templateColumns={"repeat(2, 1fr)"} mt={3}>
             {data?.map((gif, index) => {
                 return <GridItem key={index} onClick={() => onSelect({
                     "url": gif.thumb1x.url,
                     "height": gif.thumb1x.height,
                     "width": gif.thumb1x.width
                 })}>
-                    <Image width={200} height={200} src={gif.thumb1x.url} />
+                    <Image height={200} width={300} src={gif.thumb1x.url} />
                 </GridItem>
             })}
         </Grid>
@@ -154,7 +209,7 @@ export default function FilePicker({ onClose, isOpen, onSelect }) {
                     </TabList>
                     <TabPanels>
                         <TabPanel>
-                            {tab === 0 && <UserUploads />}
+                            {tab === 0 && <UserUploads onSelect={onSelect} />}
                         </TabPanel>
                         <TabPanel>
                             {

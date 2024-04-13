@@ -9,11 +9,11 @@ import { IoMdShare } from "react-icons/io";
 import FilePicker from "@/components/filePicker";
 import Head from "next/head";
 import { SiGoogleforms } from "react-icons/si";
-import { IoTabletLandscape } from "react-icons/io5";
+import { IoAdd, IoAddCircleOutline, IoTabletLandscape } from "react-icons/io5";
 import { getAuth } from "firebase/auth";
 import { MdTableRows } from "react-icons/md";
 import { FaChevronDown, FaHome } from "react-icons/fa";
-import { BsBoxArrowUpRight, BsChevronLeft, BsChevronRight } from "react-icons/bs";
+import { BsBoxArrowUpRight, BsChevronLeft, BsChevronRight, BsTrash3Fill } from "react-icons/bs";
 import {
     Tabs, TabList, TabPanels, Tab, TabPanel, TabIndicator,
     InputGroup,
@@ -219,6 +219,7 @@ export function Responses({ slug, ...props }) {
                                         {["choice", "question", "short_answer", "long_answer",
                                             "email", "name",
                                             "number",
+                                            'date',
                                             "phoneno",
                                             "url",
                                         ].includes(rData.type) && <Text>{x}</Text>}
@@ -292,6 +293,7 @@ const colorModes = [
 export default function ViewEditPage({ user, view }) {
     const [formData, setFormData] = useState();
     const [submitted, setSubmitted] = useState();
+    const [invalidPage, setinvalidPage] = useState(false);
     const [response, setResponse] = useState({});
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [imagePickIndex, setImagePickIndex] = useState();
@@ -308,7 +310,16 @@ export default function ViewEditPage({ user, view }) {
     const { slug } = router.query;
 
     useEffect(() => {
-        if (slug) getForm(slug).then(setFormData);
+        if (localStorage.getItem("submitted")) {
+            setSubmitted(true);
+        };
+
+        if (slug) getForm(slug).then(data => {
+            if (data === undefined) {
+                setinvalidPage(true);
+                return
+            }
+            setFormData(data)});
         window.addEventListener("beforeunload", (e) => {
             if (view && !submitted) {
                 e.preventDefault()
@@ -319,9 +330,13 @@ export default function ViewEditPage({ user, view }) {
         })
     }, [slug]);
 
-    const FormSaveButton = () => {
-        return <ButtonGroup width={selectIndex !== null ? 400 : 200} colorScheme={formData?.theme?.colorScheme || "purple"} flexDir={selectIndex !== null ? "row" : "column"}
-            alignItems={"center"}>
+    console.log(formData)
+    const FormSaveButton = (props) => {
+        return <ButtonGroup width={selectIndex !== null || isMobile ? 400 : 200}
+            colorScheme={formData?.theme?.colorScheme || "purple"}
+            flexDir={selectIndex !== null || isMobile ? "row" : "column"}
+            alignItems={isMobile ? null : "center"}
+            {...props}>
             <Button marginLeft={2} width={"180px"} onClick={async () => {
                 const dc = doc(db, "forms", slug);
                 await setDoc(dc, formData);
@@ -334,7 +349,7 @@ export default function ViewEditPage({ user, view }) {
             </Button>
             <Button aria-label="Add Question" leftIcon={<GrAdd />}
                 width={"180px"}
-                marginTop={selectIndex !== null ? 0 : 3}
+                marginTop={selectIndex !== null || isMobile ? 0 : 3}
 
                 onClick={() => {
                     if (!formData['pages']) {
@@ -370,7 +385,7 @@ export default function ViewEditPage({ user, view }) {
             await setDoc(dc, { "singleQuestionMode": !formData?.singleQuestionMode || false }, { merge: true });
         }
 
-        return <Flex minW={"80vh"} justify={"center"}
+        return <Flex minW={isMobile ? "90%" : "50%"} justify={"center"}
             align={"center"}
             flexDir={"column"}
         >
@@ -387,13 +402,16 @@ export default function ViewEditPage({ user, view }) {
                     <Text onClick={toggleRequireLogin}>
                         Require login to fill
                     </Text>
-                    <Checkbox isChecked={formData?.requireLogin} onChange={toggleRequireLogin} />
+                    <Checkbox isChecked={formData?.requireLogin} onChange={toggleRequireLogin}
+                        borderColor={"black"}
+                    />
                 </HStack>
                 <HStack mt={3} justify={"space-between"} minW={"80vh"}>
                     <Text onClick={toggleSingleQuestion}>
                         Single question Mode
                     </Text>
-                    <Checkbox isChecked={formData?.singleQuestionMode} onChange={toggleSingleQuestion} />
+                    <Checkbox isChecked={formData?.singleQuestionMode} onChange={toggleSingleQuestion}
+                        borderColor={"black"} />
                 </HStack>
 
 
@@ -471,6 +489,15 @@ export default function ViewEditPage({ user, view }) {
                 newErrorBox[d.qid] = "This answer is required and can not be empty!"
                 return
             }
+            if (d['type'] === "name" && (response[d.qid].length < 4)) {
+                newErrorBox[d.qid] = "Please enter a valid name!";
+                return
+            }
+            if (d['type'] === "phoneno" && (response[d.qid].length != 10)) {
+                newErrorBox[d.qid] = "Please enter a valid phone number!";
+                return
+            }
+
             if (d['type'] === "email" && !((response[d.qid]).toLowerCase()
                 .match(
                     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -484,7 +511,7 @@ export default function ViewEditPage({ user, view }) {
             setErrorBox(newErrorBox);
             toast({
                 title: "Error Occured!",
-                description: `Please fix all ${Object.entries(errorBox).length} errors`,
+                description: `Please fix all ${Object.entries(newErrorBox).length} errors`,
                 status: "error",
                 position: "top",
                 duration: 3000,
@@ -500,6 +527,9 @@ export default function ViewEditPage({ user, view }) {
             position: "top"
         });
         setSubmitted(true);
+        setResponse({});
+        setErrorBox({});
+        localStorage.setItem("submitted", true)
     }} maxW={"100px"}>
         Submit
     </Button>
@@ -536,7 +566,8 @@ export default function ViewEditPage({ user, view }) {
                     >
                         More Options
                     </Text>
-                    <IconButton onClick={() => setSelectPanel(null)}>
+                    <IconButton onClick={() => setSelectPanel(null)}
+                        borderRadius={"50%"}>
                         <BsChevronRight />
                     </IconButton>
                 </Flex>
@@ -560,7 +591,10 @@ export default function ViewEditPage({ user, view }) {
                     <Text>
                         Required:
                     </Text>
-                    <Checkbox size={"lg"} colorScheme={"green"} />
+                    <Checkbox size={"lg"} colorScheme={"green"} defaultChecked={data?.required}
+                        onChange={e => { data['required'] = !data['required'] }}
+                        borderColor={"black"}
+                    />
                 </Flex>
                 {["short_answer", "long_answer"].includes(data.type) && <>
                     <Flex justifyContent={"space-between"} ml={3}>
@@ -607,7 +641,7 @@ export default function ViewEditPage({ user, view }) {
     }
 
     function ParseQuestion(props, index) {
-        const singleMode = formData?.singleQuestionMode;
+        const singleMode = formData?.singleQuestionMode && view;
         const [sOption, selectOpt] = useState();
         const options = formData["pages"][index].options;
 
@@ -615,13 +649,14 @@ export default function ViewEditPage({ user, view }) {
             return <>
                 {
                     props.media?.map((x, index) => {
-                        return <Image src={x.url} minW="350" minH="200" height={350} width={700} marginBottom={3} />
+                        return <Image key={index} src={x.url} minW="350" minH="200" height={350} width={700} marginBottom={3} />
                     })
                 }
                 {
                     view ? <Heading size={"md"} fontWeight={"500"}
                         marginBottom={4}
-                        fontSize={singleMode ? 40 : null}
+
+                        fontSize={singleMode ? (isMobile ? 30 : 40) : null}
                         my={singleMode ? 6 : 0}
                         mb={singleMode ? 6 : 4}
                     >
@@ -639,6 +674,7 @@ export default function ViewEditPage({ user, view }) {
                 {
                     ["choice", "question"].includes(props.type) && <VStack gap={1}
                         justify={"start"}
+                        mt={3}
                     >
                         {props?.options.map((option, oindex) => <Flex flexDir={"row"}
                             backgroundColor={singleMode ? "purple.50" : null}
@@ -655,7 +691,7 @@ export default function ViewEditPage({ user, view }) {
                                 }
                             }}>
 
-                            <Radio colorScheme={"purple"} disabled={!view}
+                            {view ? <Radio colorScheme={"purple"} disabled={!view}
                                 size={singleMode ? "lg" : null}
                                 defaultChecked={view ? null : false}
                                 isChecked={sOption === oindex || response[props.qid] == option.id}
@@ -668,14 +704,19 @@ export default function ViewEditPage({ user, view }) {
                                         response[props.qid] = option.id
                                         //                                   setResponse({ ...response });
                                     }
-                                }} />
+                                }} /> : <IconButton size={"sm"} onClick={() => {
+                                    props.options = props?.options?.filter((x, index) => { return index !== oindex });
+                                    setFormData({ ...formData });
+                                }}>
+                                <BsTrash3Fill />
+                            </IconButton>}
                             {view ? <Text ml={5} size={"sm"} maxW={singleMode ? null : "250px"} fontWeight={"400"}
                                 fontSize={singleMode ? 30 : 15}
                                 className={abel.className}
                             >
                                 {option.text}
                             </Text> :
-                                <Input textColor={formData?.theme?.fg} maxW={"250px"} borderWidth={0}
+                                <Input textColor={formData?.theme?.fg} maxW={"250px"} borderWidth={0.3}
                                     defaultValue={option.text} ml={2} size={"sm"}
                                     onChange={(e) => {
                                         if (view) {
@@ -694,25 +735,36 @@ export default function ViewEditPage({ user, view }) {
                         "url"].includes(props.type) &&
                     <InputGroup>
                         {
-                            props.type === "email" && <InputLeftElement>
+                            props.type === "email" && <InputLeftElement mt={1.5}>
                                 <MdEmail />
                             </InputLeftElement>
                         }
                         {
-                            props.type === "phoneno" && <InputLeftElement>
+                            props.type === "phoneno" && <InputLeftElement mt={1.5}>
                                 <FaPhoneAlt />
                             </InputLeftElement>
                         }
                         {
-                            props.type === "url" && <InputLeftElement>
-
+                            props.type === "url" && <InputLeftElement mt={1.5}>
                             </InputLeftElement>
                         }
                         <Input placeholder={props.type === "phoneno" ? "Enter Phone Number" : (props.type === "email" ? "Enter Email" : "Enter Content")}
                             borderWidth={0.5}
                             backgroundColor={singleMode ? "white" : null}
-                            maxW={singleMode ? (isMobile ? "100%" :"50%") : null}
+                            width={singleMode ? (isMobile ? "100%" : "50%") : "100%"}
                             defaultValue={response[props.qid]}
+                            onKeyDown={event => {
+                                if (["ArrowRight", "ArrowLeft", "Backspace"].includes(event.key)) {
+                                    return
+                                }
+                                if (props.type === "name" && !/[a-zA-Z ]/i.test(event.key)) {
+                                    event.preventDefault();
+                                }
+                                if ((props.type === "phoneno" || props.type === "number") && !/[0-9 ]/i.test(event.key)) {
+                                    event.preventDefault();
+                                }
+
+                            }}
                             size={singleMode ? "lg" : null}
 
                             mt={2}
@@ -740,7 +792,7 @@ export default function ViewEditPage({ user, view }) {
                         color={formData?.theme?.fg}
                         mt={2}
                         backgroundColor={singleMode ? "white" : null}
-                            maxW={singleMode ? (isMobile ? "100%" :"50%") : null}
+                        maxW={singleMode ? (isMobile ? "100%" : "50%") : null}
                         size={singleMode ? "lg" : null}
                         defaultValue={response[props.qid]}
                         //                    borderWidth={0}
@@ -770,9 +822,9 @@ export default function ViewEditPage({ user, view }) {
                 }
 
                 {errorBox[props.qid] && view && <>
-                    <Text color={"red.500"} ml={singleMode ? 0 : 7} className={taj.className} mb={4}
+                    <Text color={"red.500"} ml={singleMode ? 0 : 0} className={taj.className} mb={4}
                         fontSize={singleMode ? 20 : null}
-                        mt={singleMode ? 7 : null}>
+                        mt={singleMode ? 7 : 3}>
                         Error: {errorBox[props.qid]}
 
                     </Text>
@@ -784,7 +836,7 @@ export default function ViewEditPage({ user, view }) {
         if (view && formData?.singleQuestionMode) {
             const hasNextPage = formData['pages'].length !== currentPage + 1;
             return <Box backgroundColor={"whitesmoke"} minH={"80vh"}
-                py={4} px={20}
+                py={4} px={isMobile ? 7 : 20}
                 mx={4}
                 display={"flex"}
                 flexDir={"column"}
@@ -821,20 +873,23 @@ export default function ViewEditPage({ user, view }) {
         }
         //        console.log(options, props)
 
-        return <Card minH={"160px"} width={isMobile ? "90%" : "48%"}
-            minW={"min-content"}
+        return <Card minH={"160px"} width={isMobile ? "99%" : "48%"}
+            //            minW={"min-content"}
             onClick={() => { if (selectIndex !== null) setSelectPanel(index) }}
             borderColor={selectIndex === index ? "black" : null}
             borderWidth={selectIndex === index ? 1 : 0}
             boxShadow={"rgba(0, 0, 0, 0.24) 0px 3px 8px;"}
             backgroundColor={formData?.theme?.card}
-
         // backgroundColor={"blue.200"}
         >
             <CardBody>
                 <PageContent />
             </CardBody>
             {!view && <CardFooter gap={2} justify={"space-between"}
+                display={"flex"}
+                flexDir={"row"}
+
+
                 //            alignContent={"center"}
                 alignItems={"center"}>
                 <Flex flexDir={"row"} gap={2}
@@ -853,26 +908,26 @@ export default function ViewEditPage({ user, view }) {
                             }
                         )}
                     </Select>
-                    {["choice", "question"].includes(props.type) && options.length < 6 && <Button px={12} onClick={() => {
+                    {["choice", "question"].includes(props.type) && options.length < 10 && <Button px={isMobile ? 0 : 12} onClick={() => {
                         options.push({
                             "text": "Option " + (options.length + 1),
                             "id": `opt${getRandomInt(1000000, 9999999)}`
                         });
                         setFormData({ ...formData });
                     }}>
-                        Add option
+                        {isMobile ? <IoAdd /> : 'Add option'}
                     </Button>}
-                    <IconButton variant="outline" onClick={() => {
-                        setModalOpen(!modalOpen);
-                        setImagePickIndex(index);
-                    }}>
-                        <IoMdImage />
-                    </IconButton>
-                    {props.media && props.media.length !== 0 && <IconButton colorScheme={"red"} onClick={() => {
+
+                    {props.media && props.media.length !== 0 ? <IconButton colorScheme={"red"} onClick={() => {
                         props.media = [];
                         setFormData({ ...formData });
                     }}>
                         <LuImageOff />
+                    </IconButton> : <IconButton variant="outline" onClick={() => {
+                        setModalOpen(!modalOpen);
+                        setImagePickIndex(index);
+                    }}>
+                        <IoMdImage />
                     </IconButton>}
                     {selectIndex === null && <IconButton onClick={() => { setSelectPanel(index) }}>
                         <BsChevronRight />
@@ -889,7 +944,23 @@ export default function ViewEditPage({ user, view }) {
     const QuestionsTab = () => <><Flex
         backgroundColor={formData?.theme?.bg}
         flexDir={"column"}>
-        {!view && !formData?.pages?.length && <Card width={isMobile ? "90%" : "38%"} opacity={0.7}>
+        {!view && !formData?.pages?.length && <Card width={isMobile ? "90%" : "38%"} opacity={0.7}
+            alignSelf={"center"} onClick={() => {
+                if (!formData['pages']) {
+                    formData["pages"] = [];
+                }
+                formData['pages'].push({
+                    "type": "choice",
+                    "question": "Question",
+                    "required": true,
+                    "qid": `ques${getRandomInt(1000000, 9999999)}`,
+                    "options": [
+                        { "text": "Option 1", "id": `opt${getRandomInt(1000000, 9999999)}` }
+                    ]
+                });
+                setFormData({ ...formData });
+
+            }}>
             <CardHeader>
                 <Heading fontWeight={"bold"} size="md">
                     Add your first question!
@@ -933,7 +1004,11 @@ export default function ViewEditPage({ user, view }) {
                     align={"center"} width={"80%"} gap={3}
                     marginRight={selectIndex !== null ? "280px" : 0}>
                     {formData.pages?.map(ParseQuestion)}
+
+                    {!view && isMobile && <FormSaveButton mt={3} mb={10} />}
+
                 </Flex>
+
                 {/* 
             ARROW LEFT BACK TO OPEN CHAT AI [REMOVE] #TODO
             {!selectIndex && <IconButton onClick={() => setselectIndex(!selectIndex)}
@@ -945,6 +1020,21 @@ export default function ViewEditPage({ user, view }) {
 
     </Flex>
     </>
+    if (invalidPage) {
+        return <>
+        <Header />
+        <Box minH={"100vh"} display={"flex"} flexDir={"column"} alignItems={"center"} backgroundColor={"blue.50"}>
+            <Image src="https://ouch-cdn2.icons8.com/txEqzpEXP-oNdP7Ktb0qw4A58H2QtApHLRKwa1gpGvc/rs:fit:368:368/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9wbmcvMS8w/NWYyNjAyMy1mMWFi/LTQ5NWUtYmY1ZC0w/MzE0NmFlYzNiNzgu/cG5n.png"
+            width={400} height={400}/>
+            <Heading maxW={"80%"}>
+                This form does'nt exists or is deleted by the creator.
+            </Heading>
+            <Button mt={10} size={"lg"} colorScheme={"purple"}>
+                Go to Home
+            </Button>
+        </Box>
+        </>
+    }
     if (view) {
         return formData ? <>
             <Head>
@@ -974,23 +1064,26 @@ export default function ViewEditPage({ user, view }) {
                             minW={"480px"} minH={"150px"}
                             display={"flex"}
                             justify={"center"}>
-                            <CardBody>
-
+                            <CardBody justifyContent={"center"} alignItems={"center"}
+                                display={"flex"} flexDir={"column"}>
+                                <Image mb={8} alignSelf={"center"} src="https://ouch-cdn2.icons8.com/LdmJhqlesaurjtJurGbiWsjONtu0_SRQ8-aEFCkKgd0/rs:fit:368:368/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNTI0/Lzk3YjJjOGZhLWUz/ZjQtNGNhNi1iZTVl/LWZiNWJjMDczN2Nl/YS5zdmc.png"
+                                    height={150} width={150} />
                                 <Heading size={"md"}>
                                     Thank your for submitting the form!
                                 </Heading>
                                 <Text mt={3}>
-                                    Your application have been submitted!
+                                    {formData?.responseMessage || 'Your application have been submitted!'}
                                 </Text>
 
                             </CardBody>
-                            <CardFooter backgroundColor={"blue.50"} justifySelf={"flex-end"}
-                                minH={"40px"}
-                                height={"min-content"} py={0}>
-                                <Text textAlign={"start"} mt={2}>
-                                    {formData?.responseMessage}
-                                </Text>
-
+                            <CardFooter justify={"flex-end"}>
+                                <Link onClick={() => {
+                                    localStorage.removeItem("submitted");
+                                    setSubmitted(false);
+                                }}
+                                    color={"blue"}>
+                                    Submit another response?
+                                </Link>
                             </CardFooter>
                         </Card>
                     </Box>
@@ -1047,20 +1140,21 @@ export default function ViewEditPage({ user, view }) {
                         py={4}
                         background={formData?.theme?.sc || "white"}
                     >
-                        <Flex display={"flex"}  alignContent={"center"}
+                        <Flex display={"flex"} alignContent={"center"}
+                            verticalAlign={"middle"}
+
                         >
                             {/* <IconButton icon={<FaHome />} colorScheme={"purple"}
                             onClick={(e) => router.push("/dashboard")} borderRadius={"50%"} /> */}
-                            <Heading size={"lg"} color={formData?.theme?.fg || "#2b2b2b"} 
-                            textAlign={"start"}
+                            {<Heading size={isMobile ? "sm" : "lg"} color={formData?.theme?.fg || "#2b2b2b"}
+                                textAlign={"start"}
                             >
                                 {formData['title']}
-
-                            </Heading>
+                            </Heading>}
                         </Flex>
 
                         <Flex flexDir={"row"}
-                            marginLeft={"-210px"}
+                            marginLeft={isMobile ? null : "-210px"}
                         >
                             <Tab>
                                 Questions
@@ -1116,7 +1210,7 @@ export default function ViewEditPage({ user, view }) {
         </HStack>
 
 
-        {selectIndex === null && tab === 0 && <Box display={"flex"} position={"fixed"}
+        {!isMobile && selectIndex === null && tab === 0 && <Box display={"flex"} position={"fixed"}
             bottom={10} right={selectIndex !== null ? "40%" : 10}
         >
             <FormSaveButton />

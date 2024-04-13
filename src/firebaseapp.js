@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import {getStorage} from "firebase/storage";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -19,5 +20,6 @@ const app = initializeApp(firebaseConfig);
 let analytics;
 
 export const db = getFirestore();
+export const storage = getStorage(app, "gs://poeter-34682.appspot.com");
 
 if (typeof window !== 'undefined') { analytics = getAnalytics(app) }

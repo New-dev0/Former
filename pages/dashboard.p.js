@@ -40,23 +40,7 @@ const Images = [
     {
         "url": "https://photo-cdn2.icons8.com/0EOWZ9RE6ZyQBZ4Q98fZrvl2TIaCh0_1jFWy_qKWCtE/rs:fit:576:384/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi9kYzM4YTY0NGZm/ZjY0MDgwYTNhNTBi/MzUzZmM3MzAyYy5q/cGc.webp",
         "name": "Register for Rock Party",
-        "pages": [
-            {
-                "type": "question",
-                "title": "What is your name?",
-                "mode": "input_small"
-            },
-            {
-                "type": "question",
-                "title": "Enter your phone number",
-                "mode": "input_small"
-            },
-            {
-                "type": "question",
-                "title": "",
-                "mode": ""
-            }
-        ]
+        "pages": []
     },
     // {
     //     "url": "https://img.freepik.com/free-vector/happy-women-sitting-talking-each-other-dialog-psychologist-tablet-flat-illustration_74855-14078.jpg?size=626&ext=jpg&ga=GA1.1.1700460183.1709769600&semt=sph",
@@ -66,12 +50,92 @@ const Images = [
     {
         "url": "https://photo-cdn2.icons8.com/xYg2PreVyUGTLWbDOAJkdeAIDxBKnXH_NGp49tQa7ak/rs:fit:576:384/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi9hMzZlNTg3ZmM1/YWU0NjY3ODE1NDU2/MmMxN2Q0OGI0My5q/cGc.webp",
         "name": "Plan a trip with friends!",
-        "subtitle": ""
+        "subtitle": "",
+        "pages": [
+            {
+                "media": [
+                    {
+                        "width": 288,
+                        "height": 162,
+                        "url": "https://photo-cdn2.icons8.com/lL7cYXjn_d7NcyyXwae8VoTwFlKBWHhzj3UksxCv3jA/rs:fit:288:162/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi85MTNmZGI2Mjhi/MGY0NmMwOTE4ZWJl/NTUyYmQ5ZTcxNy5q/cGc.jpg"
+                    }
+                ],
+                "required": true,
+                "question": "Where do we go this weekend?",
+                "qid": "ques8797625",
+                "options": [
+                    {
+                        "id": "opt8156331",
+                        "text": "Kashmir"
+                    },
+                    {
+                        "text": "Kerala",
+                        "id": "opt9944364"
+                    },
+                    {
+                        "text": "Lonavla",
+                        "id": "opt7843507"
+                    },
+                    {
+                        "text": "Odisha",
+                        "id": "opt5602203"
+                    },
+                    {
+                        "id": "opt1232144",
+                        "text": "Goa"
+                    }
+                ],
+                "type": "choice"
+            },
+            {
+                "options": [
+                    {
+                        "id": "opt7012826",
+                        "text": "Yes"
+                    },
+                    {
+                        "id": "opt6215536",
+                        "text": "No"
+                    }
+                ],
+                "type": "choice",
+                "qid": "ques4576011",
+                "question": "Should we take our kids?",
+                "required": true
+            },
+            {
+                "required": true,
+                "question": "How many days, should we plan?",
+                "type": "number",
+                "qid": "ques4730674",
+                "options": [
+                    {
+                        "id": "opt5494397",
+                        "text": "Option 1"
+                    }
+                ]
+            },
+            {
+                "options": [
+                    {
+                        "id": "opt2150943",
+                        "text": "Option 1"
+                    }
+                ],
+                "required": true,
+                "question": "When is your weekend starting?",
+                "type": "date",
+                "qid": "ques8336757"
+            }
+        ]
     },
     {
         "url": "https://photo-cdn2.icons8.com/VDP2KyNiOTXjRhv5ZVTjyvumoJqXUl6decJitMYCWxo/rs:fit:576:384/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5l/eHRlcm5hbC9hMmE0/Mi8xMzBkNzU5NDRm/YWE0NDk2OThkNjVm/Yjg4NTBjNTE4Ni5q/cGc.webp",
         "name": "Business Meet",
-        "subtitle": ""
+        "subtitle": "",
+        "pages": [
+            
+        ]
     },
     {
         "url": "https://photo-cdn2.icons8.com/9h68GzdGG3EkNfqiERjvlXcDweHdpBrXMrAk4yJJauo/rs:fit:576:385/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNTgwLzJkMDMy/YTQ3LTc4YWQtNDZh/YS1hZGQyLTM1N2Vl/NWIyODM1NC5qcGc.webp",
@@ -129,7 +193,7 @@ export async function getUniqueHash(key) {
     return hash
 }
 
-async function createNewForm(title, description, userId) {
+async function createNewForm(title, description, userId, pages) {
     const hash = await getUniqueHash();
     const now = (new Date()).getTime()
     const doe = doc(db, "forms", hash)
@@ -137,8 +201,10 @@ async function createNewForm(title, description, userId) {
         "title": title,
         "description": description,
         "userId": userId,
-        "timestamp": now
+        "timestamp": now,
+        "pages": pages
     }, { merge: true });
+    return hash;
 }
 
 async function getUserForms(userId) {
@@ -214,13 +280,15 @@ export default function Dashboard({ user }) {
                     //</CardHeader>fontSize={20}
                     className={roboto.className}
                     //                        fontFamily={"Roboto"}
-                    marginLeft={10}//color="white"
+                    marginLeft={isMobile ?
+                        "14px" : 10}//color="white"
                     fontSize={25}
                     marginBottom={3}
                 >
                     Templates
                 </Heading>
-                <Box px={"1rem"} overflowX={"auto"} whiteSpace={"nowrap"} mx={"2rem"} py={2} display={"flex"}
+                <Box px={isMobile ? 0 : "1rem"} overflowX={"auto"} whiteSpace={"nowrap"}
+                    mx={isMobile ? "7px" : "2rem"} py={2} display={"flex"}
                 >
                     {Images.map((data, index) => {
                         return <Card key={index} minWidth={"170px"} minHeight={"185px"}
@@ -254,47 +322,50 @@ export default function Dashboard({ user }) {
                     })}
                 </Box>
             </Box>
-            {/*
-            <Box mt={3} px={"2rem"}>
-                <Heading size="md">
-                    Voice Forms
-                </Heading>
-                <Box mx={5} mt={5}>
-                    <Grid templateColumns='repeat(3, 1fr)' gap={5}>
-                        {Object.entries(VoiceModels).map(
-                            data => {
-                                let id = data[0];
-                                let ndata = data[1];
-                                return <GridItem  // backgroundColor={"#d1dece"}
-
-                                >
-                                    <Card         >
-                                        <CardBody _hover={{
-                                            backgroundColor: "gray.100", borderRadius: 15
-                                        }}>
-                                            <Link href={`/voices/create?ref=${id}`} flexDir={"row"} display={"flex"}>
-                                                <Image src={ndata.img}
-                                                    height={50} width={50} borderRadius={5}
-                                                    backgroundColor={"transparent"}
-                                                />
-                                                <Text ml={3}>
-                                                    {ndata.title}
-                                                </Text>
-                                            </Link>
-
-
-                                        </CardBody>
-                                    </Card>
-
-                                </GridItem>
-                            }
-                        )}
-                    </Grid>
-                </Box>
-                        </Box>*/}
+            { // VOICE FORMS
+                /*
+                <Box mt={3} px={"2rem"}>
+                    <Heading size="md">
+                        Voice Forms
+                    </Heading>
+                    <Box mx={5} mt={5}>
+                        <Grid templateColumns='repeat(3, 1fr)' gap={5}>
+                            {Object.entries(VoiceModels).map(
+                                (data, index) => {
+                                    let id = data[0];
+                                    let ndata = data[1];
+                                    return <GridItem  // backgroundColor={"#d1dece"}
+    key={index}
+                                    >
+                                        <Card         >
+                                            <CardBody _hover={{
+                                                backgroundColor: "gray.100", borderRadius: 15
+                                            }}>
+                                                <Link href={`/voices/create?ref=${id}`} flexDir={"row"} display={"flex"}>
+                                                    <Image src={ndata.img}
+                                                        height={50} width={50} borderRadius={5}
+                                                        backgroundColor={"transparent"}
+                                                    />
+                                                    <Text ml={3}>
+                                                        {ndata.title}
+                                                    </Text>
+                                                </Link>
+    
+    
+                                            </CardBody>
+                                        </Card>
+    
+                                    </GridItem>
+                                }
+                            )}
+                        </Grid>
+                    </Box>
+                            </Box>
+                            */
+            }
             <Flex minH={"30vh"}
                 py={"1rem"}
-                px={"1rem"}
+                px={isMobile ? "3px" : "1rem"}
                 flexDir={"column"}
                 paddingTop={4}
                 backgroundColor={"whitesmoke"}
@@ -302,7 +373,7 @@ export default function Dashboard({ user }) {
                 <Card marginTop={3.4}
                     boxShadow={"rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;"}
                     backgroundColor={"#fbfbfb"}
-                    mx={"1rem"}>
+                    mx={isMobile ? "10px" : "1rem"}>
                     <CardHeader >
                         <Heading marginBottom={2} size={"md"} marginLeft={4}>
                             Your Forms
@@ -320,25 +391,24 @@ export default function Dashboard({ user }) {
                                 emptyColor='gray.200'
                                 color='blue.500' />
                         </Flex>}
-                        {haveForms ? <VStack marginLeft={3} width={"100%"}>
+                        {haveForms ? <VStack marginLeft={isMobile ? "2px" : 3} width={"100%"}>
                             {userForms?.map((data, index) => {
-                                console.log(data)
+                                //                                console.log(data)
                                 return <><Flex flexDirection={"row"} key={index}
                                     onClick={() => router.push(`/edit/${data['id']}`)}
                                     width={"inherit"}
                                     _hover={{
                                         backgroundColor: "gray.100"
                                     }}
-                                    py={2}
+                                    py={isMobile ? "2px" : 2}
                                     minH={"40px"}
                                     justify={"space-between"}>
                                     <Flex flexDir={"row"}
                                         verticalAlign={"center"}>
-                                        <Box>
-                                            <Image src="https://img.icons8.com/?size=48&id=69622&format=png"
-                                                height={"36px"}
-                                                width={"36px"} />
-                                        </Box>
+                                        <Image src="https://img.icons8.com/?size=48&id=69622&format=png"
+                                            height={"36px"}
+                                            width={"36px"} />
+
                                         <Flex flexDir={"column"} marginLeft={3}>
                                             <Text>
                                                 {data['title']}
@@ -452,7 +522,7 @@ export default function Dashboard({ user }) {
                 </ModalBody>
                 <ModalFooter>
                     <Button colorScheme={"red"} onClick={onClose}>Cancel</Button>
-                    <Button marginLeft={2} colorScheme={"teal"} onClick={() => {
+                    <Button marginLeft={2} colorScheme={"teal"} onClick={async () => {
                         if (!modalTitle || !modalDescription) {
                             toast({
                                 "status": "error",
@@ -463,9 +533,15 @@ export default function Dashboard({ user }) {
                             })
                             return;
                         }
-                        onClose();
-                        createNewForm(modalTitle,
-                            modalDescription, user.uid);
+                        toast({
+                            title: "Creating form!",
+                            status: "loading",
+                            duration: 3000
+                        });
+
+                        const hash = await createNewForm(modalTitle,
+                            modalDescription, user.uid, template?.pages);
+                        await router.push(`/edit/${hash}`);
                     }}>Continue</Button>
                 </ModalFooter>
             </ModalContent>

@@ -1,5 +1,5 @@
 import { Inter } from 'next/font/google';
-import { Box, Flex, Text, Button, Link, HStack, Avatar } from "@chakra-ui/react";
+import { Box, Flex, Text, Button, Link, HStack, Avatar, useMediaQuery } from "@chakra-ui/react";
 import { getAuth } from 'firebase/auth';
 import {
     Menu,
@@ -51,6 +51,7 @@ export default function Header({ children, showLogin = true, showOptions = true,
     pricing = true }) {
     const auth = getAuth();
     const [user, setUser] = useState(auth.currentUser);
+    const [isMobile] = useMediaQuery("(max-width: 500px)");
 
     useEffect(() => {
         auth.onAuthStateChanged(user => setUser(user))
@@ -69,7 +70,7 @@ export default function Header({ children, showLogin = true, showOptions = true,
             {centerChild}
             <Flex>
                 {children}
-                {showOptions && <Flex alignSelf={"center"}>
+                {isMobile || showOptions && <Flex alignSelf={"center"}>
                     <HStack gap={2}>
                         {pricing && <Link href="/pricing">
                             <Button variant="ghost" color={"white"}
@@ -109,9 +110,9 @@ export default function Header({ children, showLogin = true, showOptions = true,
                                 name={user?.displayName} alt="" src={user?.photoURL} />
                         </MenuButton>
                         <MenuList mt={-15} mr={7}>
-                            <Link href='/settings'>
+                            {/* <Link href='/settings'>
                                 <MenuItem>Settings</MenuItem>
-                            </Link>
+                            </Link> */}
                             <MenuItem colorScheme="red"
                                 onClick={async () => {
                                     const auth = getAuth();
