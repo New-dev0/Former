@@ -8,7 +8,8 @@ import { storage } from "@/src/firebaseapp";
 import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 // use @giphy/js-fetch-api to fetch gifs, instantiate with your api key
-const gf = new GiphyFetch('Bcs4Iqudaov0oNwSF8uAagnPUx6CUOgK')
+
+const gf = new GiphyFetch(process.env.GIPHY_API_KEY);
 
 function UserUploads({ onSelect }) {
     const user = getAuth();

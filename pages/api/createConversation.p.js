@@ -15,8 +15,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 export default async function handler(req, res) {
   let uuid = uuidv4();
   const vectorStore = new MemoryVectorStore(new OpenAIEmbeddings({
-    openAIApiKey: "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",
-    
+    openAIApiKey: process.env.OPENAI_API_KEY,
   }));
   const memory = new VectorStoreRetrieverMemory({
     // 1 is how many documents to return, you might want to return more, eg. 4
